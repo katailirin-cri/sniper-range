@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101d21">
+<meta name="description" content="Тихий рубеж — автономный снайперский тир. Мишени, прицел, рекорды, настройки.">
+<title>Тихий рубеж — v1.4</title>
+<style>
+:root{color-scheme:dark;--ink:#0c171b;--surface:#1a2d2f;--line:#57716c;--cream:#f2e8d5;--muted:#b6c5b8;--amber:#d7a16f;--gold:#f2cb8e}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--cream);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;touch-action:none}
+button,select,input{font:inherit}button{touch-action:manipulation;cursor:pointer;min-height:43px;border:1px solid #91a79891;background:linear-gradient(180deg,#2a4141,#182c2e);border-radius:10px;padding:10px 15px;color:#f4f0e4;transition:background .1s,filter .1s}button:hover{filter:brightness(1.12)}button:active{filter:brightness(1.25);transform:translateY(1px)}button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:linear-gradient(180deg,#bd8359,#965b3d);border-color:#e2bc86;color:#fff8e5;font-weight:800}button.ghost{background:#12232685}
+#game{display:block;width:100%;height:100dvh;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
+.hidden{display:none!important}
+#hud{position:fixed;z-index:2;top:env(safe-area-inset-top);left:0;right:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:850px;margin:auto;padding:8px 10px;pointer-events:none;text-shadow:0 1px 4px #000}
+.stat{border:1px solid #6e87806d;background:#091719d9;border-radius:8px;text-align:center;padding:8px 5px;white-space:nowrap;font-size:clamp(11px,1.35vw,15px);font-variant-numeric:tabular-nums}
+#game-controls{position:fixed;z-index:3;bottom:calc(env(safe-area-inset-bottom) + 10px);left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:8px;width:min(98%,760px);user-select:none}
+#game-controls button{min-width:0;white-space:nowrap;font-size:13px}
+#fire{background:linear-gradient(#bb7c4c,#945332);border-color:#f0c28c;box-shadow:0 2px 13px #0006;font-size:18px!important;min-width:128px!important;font-weight:900;min-height:55px}
+#breath{min-width:116px;touch-action:none;user-select:none;-webkit-user-select:none}
+#breath:active{background:#496860}
+#scope{min-width:95px}#pause{min-width:75px}
+#breath-info{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 81px);left:50%;transform:translateX(-50%);width:min(330px,70vw);pointer-events:none;z-index:2}
+#breath-meter{height:5px;background:#0b1b1e;border-radius:8px;border:1px solid #829b8e77;overflow:hidden}#breath-fill{height:100%;width:100%;background:#d9ba81;transition:width .13s}
+#breath-caption{font-size:11px;text-align:center;margin-top:3px;color:#e2e9da;text-shadow:0 1px 3px #000}
+#toast{position:fixed;z-index:4;top:calc(62px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:6px 12px;border:1px solid #6d9184;background:#1c3030e8;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .15s;white-space:nowrap}#toast.visible{opacity:1}
+#overlay{position:fixed;z-index:10;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:linear-gradient(95deg,#081317e9,#0a171dc9);overflow-y:auto;touch-action:pan-y}
+.screen{width:min(470px,100%);max-height:calc(100dvh - 28px);overflow-y:auto;touch-action:pan-y;border:1px solid #78988a;background:linear-gradient(140deg,#263c3b 0%,#132628 65%,#0f2024 100%);box-shadow:0 15px 65px #000b,inset 0 0 26px #5a8f7624;border-radius:17px;padding:26px 27px;text-align:center}
+.eyebrow{font-size:10px;letter-spacing:.28em;color:#e5c28c;font-weight:800}.screen h1{font-size:clamp(26px,4vw,36px);margin:10px 0 5px;letter-spacing:.08em;line-height:1.05}.screen h2{font-size:clamp(21px,3vw,26px);margin:7px 0 13px}.subtitle{font-size:13px;line-height:1.52;color:var(--muted);margin:8px 0 20px}
+.rule{height:1px;background:linear-gradient(90deg,transparent,#79988783,transparent);margin:16px 0}
+.section-label{font-size:11px;color:#d9be91;letter-spacing:.12em;text-align:left;margin:13px 0 8px;font-weight:800;text-transform:uppercase}
+.level-list{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.level-option{padding:11px 5px 9px;border:1px solid #557570af;background:#112325a6;border-radius:10px;text-align:center;min-height:75px;line-height:1.2;cursor:pointer;user-select:none;touch-action:manipulation}
+.level-option.selected{border-color:#e9c38c;background:linear-gradient(180deg,#445c50,#263d3d);box-shadow:inset 0 0 0 1px #e9c38c66}
+.level-option strong{display:block;font-size:clamp(12px,2.4vw,15px)}.level-option small{display:block;font-size:10px;color:#bdcdbf;margin-top:6px}
+.menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.menu-actions button{width:100%}.menu-actions .wide{grid-column:1/-1;font-size:17px;min-height:49px}
+.menu-best{font-size:12px;color:#c5d2c6;margin-top:13px}#home-best{color:#f3ce91;font-weight:800}
+.return-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.return-row button{font-size:12px;padding:8px 12px;min-height:36px}.return-row span{color:#b8c8b8;font-size:11px;letter-spacing:.15em}
+.record-tabs{display:flex;gap:6px;margin:14px 0}.record-tabs button{flex:1;font-size:12px;padding:8px 3px;min-height:39px}.record-tabs button.active{border-color:#e8c38f;color:#f6d2a0;background:#3b5149}
+.record-list{list-style:none;margin:0;padding:0;text-align:left;min-height:70px}.record-list li{display:flex;gap:10px;align-items:center;border-bottom:1px solid #7290803c;padding:10px 2px;font-size:13px}.record-rank{width:25px;color:#d9b58a;font-weight:800}.record-score{flex:1;font-weight:700}.record-detail{font-size:11px;color:#b8c8bb;text-align:right}.record-empty{font-size:13px;color:#b5c7b7;padding:24px 2px;text-align:center}
+.tiny{font-size:11px;color:#9fb4a9;line-height:1.5}.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;border-bottom:1px solid #91a8982b;padding:13px 0}.setting label{font-size:14px}.setting small{display:block;font-size:11px;color:#afc1b5;margin-top:3px}.switch{min-width:70px;background:#1a2e2f;border-color:#687e78;padding:8px 12px}.switch.on{border-color:#d5af78;color:#f6d3a1;background:#43584e}
+.option-colors{display:flex;gap:8px}.color-btn{width:35px;min-height:35px;padding:0;border-radius:50%;border:2px solid #6c8579}.color-btn.selected{outline:2px solid #f6deae;outline-offset:2px}
+.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:19px 0}.summary-grid>div{padding:12px;background:#101f2388;border:1px solid #75908566;border-radius:9px}.summary-grid strong{font-size:23px;display:block;color:#f2cb8e}.summary-grid span{font-size:11px;color:#c1cfc0}.summary-message{color:#f1cc91;font-size:13px;margin:7px 0 15px}
+.help-row{font-size:11px;color:#b8ccbd;line-height:1.6;margin-top:14px}
+@media(max-width:580px){.screen{padding:20px 17px}.level-option{min-height:69px}.level-option small{font-size:10px}#hud{gap:4px;padding:6px 5px}.stat{padding:7px 3px;font-size:clamp(10px,2.55vw,13px)}#game-controls{gap:5px;max-width:600px;width:calc(100% - 10px)}#game-controls button{padding:9px 5px;font-size:clamp(10px,2.5vw,12px)}#fire{min-width:0!important;flex:1.55;font-size:15px!important}#scope{min-width:0;flex:1.1}#breath{min-width:0;flex:1.3}#pause{min-width:0;flex:.75}#fullscreen{min-width:0;flex:.55}#breath-info{bottom:calc(env(safe-area-inset-bottom) + 77px)}}
+@media(max-height:560px){.screen{padding:13px 18px}.screen h1{font-size:23px;margin:3px 0}.subtitle{margin:4px 0 8px}.rule{margin:9px 0}.section-label{margin:7px 0}.level-option{min-height:56px;padding:6px 3px}.level-option small{margin-top:2px}#breath-info{bottom:calc(env(safe-area-inset-bottom) + 64px)}#game-controls button{min-height:39px}#fire{min-height:42px}}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Поле тира с движущимися мишенями"></canvas>
+<div id="hud" class="hidden"><div class="stat" id="score">Очки: 0</div><div class="stat" id="time">Время: 60</div><div class="stat" id="accuracy">Точность: —</div><div class="stat" id="best">Рекорд: —</div></div>
+<div id="breath-info" class="hidden"><div id="breath-meter"><div id="breath-fill"></div></div><div id="breath-caption">Задержка дыхания: удерживать SHIFT или кнопку</div></div>
+<div id="game-controls" class="hidden"><button id="scope" type="button">Прицел ×2</button><button id="breath" type="button">◌ Дыхание</button><button id="fire" type="button">◎ ОГОНЬ</button><button id="pause" type="button">Ⅱ</button><button id="fullscreen" type="button" title="Полный экран">⛶</button></div>
+<div id="toast"></div>
+<div id="overlay">
+  <section class="screen" id="home-screen">
+    <div class="eyebrow">ЛЕСНОЙ СТРЕЛКОВЫЙ ПОЛИГОН · V1.4</div>
+    <h1>ТИХИЙ РУБЕЖ</h1>
+    <p class="subtitle">Стальные мишени, дальние дистанции, непредсказуемые траектории. Одна минута — один результат.</p>
+    <div class="rule"></div>
+    <div class="section-label">Выбери сложность</div>
+    <div class="level-list" id="level-list">
+      <div class="level-option" role="button" tabindex="0" data-level="easy"><strong>Спокойный</strong><small>Разминка</small></div>
+      <div class="level-option" role="button" tabindex="0" data-level="normal"><strong>Обычный</strong><small>Тренировка</small></div>
+      <div class="level-option" role="button" tabindex="0" data-level="hard"><strong>Сложный</strong><small>Испытание</small></div>
+    </div>
+    <div class="menu-best">Лучший результат: <span id="home-best">—</span></div>
+    <div class="rule"></div>
+    <div class="menu-actions"><button id="start" type="button" class="primary wide">▶ Начать тренировку</button><button id="open-records" type="button">★ Рекорды</button><button id="open-settings" type="button">⚙ Настройки</button></div>
+    <div class="help-row">ПК: мышь — прицел, клик или пробел — огонь, Shift — задержка дыхания.<br>Android: веди пальцем по полю, стреляй кнопкой.</div>
+  </section>
+  <section class="screen hidden" id="records-screen">
+    <div class="return-row"><button class="back-home" type="button">← Назад</button><span>АРХИВ ПОЛИГОНА</span></div>
+    <h2>ТАБЛИЦА РЕКОРДОВ</h2><p class="subtitle">Пять лучших результатов в каждой сложности</p>
+    <div class="record-tabs" id="record-tabs"><button data-record-level="easy">Спокойный</button><button data-record-level="normal">Обычный</button><button data-record-level="hard">Сложный</button></div>
+    <ol class="record-list" id="record-list"></ol>
+    <p class="tiny" id="save-status">Рекорды сохраняются на этом устройстве.</p>
+  </section>
+  <section class="screen hidden" id="settings-screen">
+    <div class="return-row"><button class="back-home" type="button">← Назад</button><span>НАСТРОЙКИ</span></div>
+    <h2>НАСТРОЙКИ</h2>
+    <div class="setting"><label for="setting-sound">Звуки выстрелов<small>Можно полностью отключить</small></label><button class="switch" id="setting-sound" type="button">Вкл.</button></div>
+    <div class="setting"><label for="setting-vibration">Вибрация<small>На поддерживаемых Android</small></label><button class="switch" id="setting-vibration" type="button">Выкл.</button></div>
+    <div class="setting"><label for="setting-distances">Подписи дистанций<small>80, 160 и 280 метров (условно)</small></label><button class="switch" id="setting-distances" type="button">Вкл.</button></div>
+    <div class="setting"><label for="setting-click">Выстрел по клику мыши<small>Или только кнопкой / пробелом</small></label><button class="switch" id="setting-click" type="button">Вкл.</button></div>
+    <div class="setting"><label>Цвет сетки прицела<small>Выбери самый заметный</small></label><div class="option-colors"><button class="color-btn" data-reticle="sage" style="background:#cde9bb" aria-label="Зелёный"></button><button class="color-btn" data-reticle="amber" style="background:#ffcf85" aria-label="Янтарный"></button><button class="color-btn" data-reticle="white" style="background:#f7f7f0" aria-label="Белый"></button></div></div>
+    <p class="tiny">Настройки и рекорды хранятся в браузере. Очистка данных сайта может их удалить.</p>
+    <button class="back-home primary" type="button" style="width:100%">Сохранить и вернуться</button>
+  </section>
+  <section class="screen hidden" id="pause-screen">
+    <div class="eyebrow">ПОЛИГОН · ПЕРЕРЫВ</div><h2>ПАУЗА</h2><p class="subtitle" id="pause-summary">Раунд остановлен, таймер не идёт.</p>
+    <div class="menu-actions"><button id="resume" class="primary wide" type="button">▶ Продолжить</button><button id="restart" type="button">↻ Заново</button><button id="exit" type="button">⌂ Главное меню</button></div>
+    <p class="tiny">Если выйти до конца раунда, результат не попадёт в таблицу рекордов.</p>
+  </section>
+  <section class="screen hidden" id="end-screen">
+    <div class="eyebrow">РАУНД ЗАВЕРШЁН</div><h2>РЕЗУЛЬТАТ</h2>
+    <p class="summary-message" id="end-message"></p>
+    <div class="summary-grid"><div><strong id="end-score">0</strong><span>очки</span></div><div><strong id="end-accuracy">0%</strong><span>точность</span></div><div><strong id="end-hits">0 / 0</strong><span>попаданий / выстрелов</span></div><div><strong id="end-penalties">0</strong><span>штрафных очков</span></div></div>
+    <div class="menu-actions"><button id="again" class="primary wide" type="button">↻ Ещё раунд</button><button id="end-records" type="button">★ Рекорды</button><button id="end-home" type="button">⌂ В меню</button></div>
+  </section>
+</div>
+<noscript><div style="position:fixed;z-index:30;inset:0;background:#101d21;padding:15vh 8vw;font:18px/1.6 system-ui;color:white">Для игры нужен JavaScript. Открой HTML в Chrome или другом полноценном браузере.</div></noscript>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const canvas=$('game'),ctx=canvas.getContext('2d',{alpha:false}),overlay=$('overlay');
+const STORE='tihiy_rubezh_highscores_v1',PREFS_STORE='tihiy_rubezh_settings_v1',NAMES={easy:'спокойный',normal:'обычный',hard:'сложный'};
+const RULES={
+ easy:{speed:53,interval:1.8,life:10.5,radius:38,max:4,patterns:['patrol','zigzag','arc']},
+ normal:{speed:82,interval:1.28,life:8.4,radius:33,max:5,patterns:['patrol','zigzag','rush','arc','feint']},
+ hard:{speed:119,interval:.84,life:7.2,radius:29,max:6,patterns:['zigzag','rush','arc','feint']}
+};
+const DISTANCES=[{m:80,scale:1,mult:1},{m:160,scale:.82,mult:1.5},{m:280,scale:.66,mult:2}];
+const COLORS={sage:'#cde9bb',amber:'#ffcf85',white:'#f7f7f0'};
+const defaults={sound:true,vibration:false,distances:true,click:true,reticle:'sage'};
+let prefs={...defaults},boards={easy:[],normal:[],hard:[]},storageOK=true,level='normal',recordLevel='normal';
+let w=1,h=1,dpr=1,background=document.createElement('canvas'),bgctx=background.getContext('2d');
+let aim={x:0,y:0},targets=[],particles=[],floats=[],last=0,spawn=0,elapsed=0,score=0,shots=0,hits=0,misses=0,escapes=0,time=60;
+let running=false,paused=false,screen='home',magnify=2,holdBreath=false,breath=100,breathLock=false,swayX=0,swayY=0,recoil=0,soundContext=null,toastRemaining=0;
+const rand=(a,b)=>a+Math.random()*(b-a),clamp=(x,low,high)=>Math.max(low,Math.min(high,x)),asInt=x=>Number.isFinite(Number(x))?Math.trunc(Number(x)):0;
+const cfg=()=>RULES[level],difficultyRamp=()=>1+(60-time)/60*.75;
+function save(key,value){if(!storageOK)return;try{localStorage.setItem(key,JSON.stringify(value))}catch(e){storageOK=false}}
+function load(){try{let data=JSON.parse(localStorage.getItem(STORE)||'null');if(data&&typeof data==='object'){for(const lv of Object.keys(boards)){if(Array.isArray(data[lv]))boards[lv]=data[lv].filter(a=>a&&Number.isFinite(Number(a.score))).map(a=>({score:asInt(a.score),hits:asInt(a.hits),shots:asInt(a.shots),when:String(a.when||'').slice(0,24)})).sort((a,b)=>b.score-a.score).slice(0,5)}}
+ const saved=JSON.parse(localStorage.getItem(PREFS_STORE)||'null');if(saved&&typeof saved==='object'){for(const k of Object.keys(defaults))if(typeof saved[k]===typeof defaults[k])prefs[k]=saved[k]};if(!COLORS[prefs.reticle])prefs.reticle='sage';
+ }catch(e){storageOK=false}}
+function best(lv=level){return boards[lv].length?boards[lv][0].score:null}
+function updateHome(){document.querySelectorAll('[data-level]').forEach(el=>{el.classList.toggle('selected',el.dataset.level===level);el.setAttribute('aria-pressed',String(el.dataset.level===level))});$('home-best').textContent=best()===null?'пока нет':best()+' очков'}
+function updateSettings(){for(const key of ['sound','vibration','distances','click']){const b=$('setting-'+key);b.textContent=prefs[key]?'Вкл.':'Выкл.';b.classList.toggle('on',prefs[key]);b.setAttribute('aria-pressed',String(prefs[key]))}document.querySelectorAll('[data-reticle]').forEach(el=>el.classList.toggle('selected',el.dataset.reticle===prefs.reticle))}
+function updateRecords(){document.querySelectorAll('[data-record-level]').forEach(el=>el.classList.toggle('active',el.dataset.recordLevel===recordLevel));const list=$('record-list');list.replaceChildren();if(!boards[recordLevel].length){let li=document.createElement('li');li.className='record-empty';li.textContent='Пока здесь никого. Первый рекорд ждёт!';list.append(li)}else boards[recordLevel].forEach((a,i)=>{let li=document.createElement('li'),rank=document.createElement('span'),points=document.createElement('span'),details=document.createElement('span');rank.className='record-rank';rank.textContent=String(i+1).padStart(2,'0');points.className='record-score';points.textContent=a.score+' очков';details.className='record-detail';details.textContent=a.hits+'/'+a.shots+' · '+a.when;li.append(rank,points,details);list.append(li)});$('save-status').textContent=storageOK?'Рекорды сохраняются в этом браузере и сохранятся при обновлении игры по той же ссылке.':'⚠ Не удалось получить доступ к памяти браузера. Сохранение может не работать.'}
+function show(name){screen=name;overlay.classList.toggle('hidden',name==='none');for(const el of document.querySelectorAll('.screen'))el.classList.toggle('hidden',el.id!==name+'-screen');const playing=name==='none'||name==='pause';$('hud').classList.toggle('hidden',!playing);$('game-controls').classList.toggle('hidden',name!=='none');$('breath-info').classList.toggle('hidden',name!=='none');if(name==='home')updateHome();if(name==='records')updateRecords();if(name==='settings')updateSettings();}
+function showToast(msg){$('toast').textContent=msg;$('toast').classList.add('visible');toastRemaining=1.2}
+function fullscreen(){if(!document.fullscreenElement){document.documentElement.requestFullscreen?.().catch(()=>showToast('Полный экран недоступен'))}else document.exitFullscreen?.().catch(()=>{})}
+function resize(){const previousW=w,previousH=h;w=Math.max(1,window.innerWidth);h=Math.max(1,window.innerHeight);dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);background.width=Math.round(w*dpr);background.height=Math.round(h*dpr);bgctx.setTransform(dpr,0,0,dpr,0,0);drawBackground();if(previousW===1&&previousH===1){aim.x=w/2;aim.y=h*.46}else{aim.x*=w/previousW;aim.y*=h/previousH;for(const t of targets){t.x*=w/previousW;t.y*=h/previousH;const b=targetBounds(t.r);t.x=clamp(t.x,b.left,b.right);t.y=clamp(t.y,b.top,b.bottom)}}aimPosition(aim.x,aim.y)}
+function aimRadius(){return Math.min(128,Math.max(44,Math.min(w,h)*.22))}
+function aimPosition(x,y){const radius=aimRadius();aim.x=clamp(x,radius+4,Math.max(radius+4,w-radius-4));const low=Math.min(h*.30,105)+radius*.48,high=Math.max(low+5,h-108-radius*.45);aim.y=clamp(y,low,high)}
+function targetBounds(r){const lens=aimRadius(),aimTop=Math.min(h*.30,105)+lens*.48,aimBottom=Math.max(aimTop+5,h-108-lens*.45);let minY=Math.max(112+r*.55,h*.25,aimTop+3),maxY=Math.min(h-143-r*.55,h*.76,aimBottom-3);if(maxY<minY){minY=aimTop+2;maxY=Math.max(minY+1,aimBottom-2)}let left=Math.max(r+16,lens+9),right=Math.min(w-r-16,w-lens-9);if(right<left){left=w/2;right=left+1}return{left,right,top:minY,bottom:maxY}}
+function drawBackground(){const g=bgctx;g.clearRect(0,0,w,h);let sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#13252b');sky.addColorStop(.52,'#334d4d');sky.addColorStop(1,'#465548');g.fillStyle=sky;g.fillRect(0,0,w,h);
+ let haze=g.createRadialGradient(w*.66,h*.45,2,w*.66,h*.45,Math.max(w,h)*.56);haze.addColorStop(0,'#d9b77a42');haze.addColorStop(1,'#00000000');g.fillStyle=haze;g.fillRect(0,0,w,h);
+ const layers=[{base:.48,color:'#2a4442',height:53,count:29},{base:.61,color:'#1b3635',height:96,count:24},{base:.73,color:'#102c2c',height:127,count:21}];
+ for(const layer of layers){g.fillStyle=layer.color;const spacing=w/layer.count;for(let i=0;i<=layer.count;i++){let x=i*spacing+(Math.sin(i*8.1)*14),th=layer.height*(.7+(Math.sin(i*6.2)+1)*.25),base=h*layer.base+Math.sin(i*2.7)*14;g.beginPath();g.moveTo(x,base-th);g.lineTo(x-14-th*.11,base-th*.34);g.lineTo(x-8,base-th*.37);g.lineTo(x-22-th*.11,base+3);g.lineTo(x+22+th*.11,base+3);g.lineTo(x+8,base-th*.37);g.lineTo(x+14+th*.11,base-th*.34);g.closePath();g.fill()}g.fillRect(0,h*layer.base,w,h*(1-layer.base))}
+ const soil=g.createLinearGradient(0,h*.75,0,h);soil.addColorStop(0,'#233932');soil.addColorStop(1,'#0b1d20');g.fillStyle=soil;g.fillRect(0,h*.83,w,h*.17);g.fillStyle='#adc5a209';for(let i=0;i<65;i++){const x=(i*239)%w,y=h*.84+(i*71)%(h*.16||1);g.fillRect(x,y,2+(i%3),1)}
+ g.fillStyle='#d0d8c314';g.textAlign='center';g.font='bold '+clamp(w*.04,18,55)+'px system-ui';g.fillText('ТИХИЙ РУБЕЖ',w/2,h*.19)
+}
+function makeTarget(){const base=cfg(),distance=DISTANCES[Math.floor(rand(0,DISTANCES.length))],r=clamp(base.radius*distance.scale,15,Math.max(16,w*.075)),b=targetBounds(r),dir=Math.random()<.5?1:-1,pattern=base.patterns[Math.floor(rand(0,base.patterns.length))];let baseSpeed=base.speed*rand(.78,1.16)*(distance.m===280?.84:1);let t={x:rand(b.left,b.right),y:rand(b.top,b.bottom),baseY:0,r,m:distance.m,mult:distance.mult,pattern,dir,speed:baseSpeed,vx:dir*baseSpeed,vy:rand(-.35,.35)*baseSpeed,age:0,life:base.life*rand(.84,1.25),turn:rand(.4,1.15),phase:rand(0,6.28),flash:0};t.baseY=t.y;targets.push(t)}
+function moveTarget(t,dt){const b=targetBounds(t.r),speed=t.speed*difficultyRamp();t.age+=dt;t.life-=dt;t.turn-=dt;t.flash=Math.max(0,t.flash-dt);
+ if(t.turn<=0){if(t.pattern==='zigzag'){t.vy=(t.vy<=0?1:-1)*speed*rand(.4,.84);t.turn=rand(.33,.68)/difficultyRamp()}
+ else if(t.pattern==='rush'){t.vx=t.dir*speed*rand(.45,2);t.vy=speed*rand(-.65,.65);if(Math.random()<.27)t.dir*=-1;t.turn=rand(.4,.95)/difficultyRamp();t.flash=.12}
+ else if(t.pattern==='feint'){t.dir*=-1;t.vx=t.dir*speed*rand(.65,1.6);t.vy=speed*rand(-.6,.6);t.turn=rand(.45,.9)/difficultyRamp();t.flash=.1}
+ else if(t.pattern==='arc'){t.vx=t.dir*speed*rand(.65,1.05);t.vy=speed*rand(-.4,.4);t.turn=rand(.7,1.15)}else t.turn=rand(1,2)}
+ if(t.pattern==='patrol'){t.vx=t.dir*speed;t.vy=Math.sin(t.age*3+t.phase)*speed*.16}
+ if(t.pattern==='zigzag'){t.vx=t.dir*speed;if(Math.abs(t.vy)<1)t.vy=speed*.4}
+ if(t.pattern==='arc'){t.vy=clamp(t.vy+Math.sin(t.age*4+t.phase)*dt*speed*2,-speed*.8,speed*.8)}
+ t.x+=t.vx*dt;t.y+=t.vy*dt;
+ if(t.x<b.left){t.x=b.left;t.dir=1;t.vx=Math.abs(t.vx)}else if(t.x>b.right){t.x=b.right;t.dir=-1;t.vx=-Math.abs(t.vx)}
+ if(t.y<b.top){t.y=b.top;t.vy=Math.abs(t.vy)||speed*.5}else if(t.y>b.bottom){t.y=b.bottom;t.vy=-Math.abs(t.vy)||-speed*.5}
+}
+function drawTarget(g,t){const{x,y,r}=t;g.save();g.lineWidth=Math.max(1.4,r*.07);g.strokeStyle='#141f1d';g.beginPath();g.moveTo(x,y+r);g.lineTo(x,y+r+Math.max(12,r*.53));g.stroke();g.fillStyle='#0e2121';g.beginPath();g.arc(x+2,y+2,r+4,0,6.283);g.fill();g.fillStyle='#a7a68b';g.beginPath();g.arc(x,y,r+1,0,6.283);g.fill();g.fillStyle='#30403b';g.beginPath();g.arc(x,y,r*.8,0,6.283);g.fill();g.fillStyle='#c3b79a';g.beginPath();g.arc(x,y,r*.56,0,6.283);g.fill();g.fillStyle='#af7051';g.beginPath();g.arc(x,y,r*.33,0,6.283);g.fill();g.fillStyle=t.flash>0?'#ffffff':'#e7d2a7';g.beginPath();g.arc(x,y,Math.max(1.4,r*.10),0,6.283);g.fill();if(prefs.distances){g.font='bold '+clamp(r*.46,9,12)+'px monospace';g.textAlign='center';g.fillStyle='#dfe4ce';g.shadowColor='#061213';g.shadowBlur=4;g.fillText(t.m+'м',x,y+r+26);g.shadowBlur=0}g.restore()}
+function drawTargets(g){for(const t of [...targets].sort((a,b)=>b.m-a.m))drawTarget(g,t)}
+function drawLens(){const x=aim.x,y=aim.y,r=aimRadius();ctx.save();ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();ctx.fillStyle='#081617';ctx.fillRect(x-r,y-r,r*2,r*2);
+ // The world is genuinely redrawn larger inside the optical lens.
+ ctx.translate(x,y);ctx.scale(magnify,magnify);ctx.translate(-x,-y);ctx.drawImage(background,0,0,w,h);drawTargets(ctx);ctx.restore();
+ ctx.save();ctx.strokeStyle='#071518';ctx.lineWidth=8;ctx.beginPath();ctx.arc(x,y,r+4,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#aabdb2';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+ const rx=x+swayX,ry=y+swayY,color=COLORS[prefs.reticle];ctx.strokeStyle=color;ctx.fillStyle=color;ctx.shadowColor='#000a';ctx.shadowBlur=4;ctx.lineWidth=1.45;
+ ctx.beginPath();ctx.moveTo(rx-r*.76,ry);ctx.lineTo(rx-11,ry);ctx.moveTo(rx+11,ry);ctx.lineTo(rx+r*.76,ry);ctx.moveTo(rx,ry-r*.77);ctx.lineTo(rx,ry-11);ctx.moveTo(rx,ry+11);ctx.lineTo(rx,ry+r*.77);ctx.stroke();
+ ctx.beginPath();ctx.arc(rx,ry,3.2,0,6.283);ctx.stroke();ctx.fillRect(rx-.7,ry-.7,1.4,1.4);
+ ctx.font='11px monospace';ctx.shadowBlur=0;ctx.fillText('×'+magnify,x-r+10,y-r+19);ctx.fillText(holdBreath&&!breathLock?'STEADY':'',x-r+10,y+r-10);ctx.restore()
+}
+function drawFloats(dt){for(const p of particles){ctx.globalAlpha=Math.max(0,1-p.age/.6);ctx.fillStyle='#efd49c';ctx.fillRect(p.x,p.y,3,3)}ctx.globalAlpha=1;for(const f of floats){ctx.globalAlpha=Math.max(0,1-f.age/.8);ctx.fillStyle=f.good?'#f8ddaa':'#f8b2a1';ctx.textAlign='center';ctx.font='bold 18px system-ui';ctx.fillText(f.msg,f.x,f.y)}ctx.globalAlpha=1}
+function hud(){ $('score').textContent='Очки: '+score;$('time').textContent='Время: '+Math.ceil(Math.max(0,time));$('accuracy').textContent='Точность: '+(shots?Math.round(hits/shots*100)+'%':'—');$('best').textContent='Рекорд: '+(best()??'—');$('breath-fill').style.width=Math.round(breath)+'%';$('breath-caption').textContent=breathLock?'Восстанови дыхание…':holdBreath?'Дыхание задержано — прицел стабилен':'Зажми «Дыхание» или SHIFT — меньше качает прицел'}
+function tone(good){if(!prefs.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;soundContext=soundContext||new AC();if(soundContext.state==='suspended')soundContext.resume();const osc=soundContext.createOscillator(),gain=soundContext.createGain();osc.type=good?'triangle':'sawtooth';osc.frequency.setValueAtTime(good?660:142,soundContext.currentTime);osc.frequency.exponentialRampToValueAtTime(good?300:54,soundContext.currentTime+.17);gain.gain.setValueAtTime(.062,soundContext.currentTime);gain.gain.exponentialRampToValueAtTime(.001,soundContext.currentTime+.19);osc.connect(gain).connect(soundContext.destination);osc.start();osc.stop(soundContext.currentTime+.20)}catch(e){}}
+function vibrate(){if(prefs.vibration&&navigator.vibrate)try{navigator.vibrate(17)}catch(e){}}
+function addFloat(x,y,msg,good){floats.push({x,y,msg,good,age:0})}
+function fire(){if(!running||paused)return;shots++;const px=aim.x+swayX/magnify,py=aim.y+swayY/magnify;let found=null,nearest=Infinity;for(const t of targets){const d=Math.hypot(px-t.x,py-t.y);if(d<t.r&&d<nearest){nearest=d;found=t}}
+ if(found){hits++;let base=nearest<found.r*.32?100:nearest<found.r*.66?70:40,value=Math.round(base*found.mult/5)*5;score+=value;targets.splice(targets.indexOf(found),1);addFloat(found.x,found.y,'+'+value,true);for(let i=0;i<12;i++)particles.push({x:found.x,y:found.y,vx:rand(-115,115),vy:rand(-150,45),age:0});tone(true)}else{misses++;score-=25;addFloat(px,py,'−25',false);tone(false)}recoil=.18;vibrate();hud()}
+function begin(){level=level in RULES?level:'normal';targets=[];particles=[];floats=[];time=60;elapsed=0;spawn=1.25;score=shots=hits=misses=escapes=0;running=true;paused=false;breath=100;breathLock=false;holdBreath=false;recoil=0;magnify=2;aimPosition(w/2,h*.46);for(let i=0;i<3;i++)makeTarget();last=performance.now();$('scope').textContent='Прицел ×2';show('none');hud()}
+function end(){running=false;paused=false;holdBreath=false;const prior=best(level);boards[level].push({score,hits,shots,when:new Date().toLocaleDateString('ru-RU')});boards[level].sort((a,b)=>b.score-a.score);boards[level].length=Math.min(5,boards[level].length);save(STORE,boards);$('end-score').textContent=String(score);$('end-accuracy').textContent=shots?Math.round(hits/shots*100)+'%':'0%';$('end-hits').textContent=hits+' / '+shots;$('end-penalties').textContent='−'+(misses*25+escapes*10);$('end-message').textContent=prior===null||score>prior?'★ Новый рекорд!':'Результат записан · '+NAMES[level]+' уровень';show('end')}
+function pause(){if(!running)return;paused=true;holdBreath=false;$('pause-summary').textContent='Очки: '+score+' · осталось '+Math.ceil(time)+' сек.';show('pause')}
+function resume(){if(!running)return;paused=false;last=performance.now();show('none')}
+function exitRound(){running=false;paused=false;holdBreath=false;targets=[];show('home')}
+function tick(now){let dt=Math.min(.05,Math.max(0,(now-last)/1000||0));last=now;if(running&&!paused){time=Math.max(0,time-dt);elapsed+=dt;spawn-=dt;
+ if(spawn<=0){if(targets.length<cfg().max)makeTarget();spawn=cfg().interval*rand(.7,1.16)/difficultyRamp()}
+ for(const t of targets)moveTarget(t,dt);let kept=[];for(const t of targets)if(t.life>0)kept.push(t);else{escapes++;score-=10;addFloat(t.x,t.y,'−10',false)}targets=kept;
+ if(holdBreath&&!breathLock){breath=Math.max(0,breath-26*dt);if(breath===0){breathLock=true;holdBreath=false;showToast('Нужно восстановить дыхание')}}else{breath=Math.min(100,breath+19*dt);if(breathLock&&breath>=30)breathLock=false}
+ const calm=holdBreath&&!breathLock?.1:1;const noise=(Math.sin(elapsed*2.4)*3.3+Math.sin(elapsed*4.7)*1.7)*calm;swayX=noise+Math.sin(elapsed*1.3)*1.7*calm+recoil*13;swayY=(Math.cos(elapsed*2.05)*3.8+Math.sin(elapsed*3.4)*1.2)*calm+recoil*16;recoil=Math.max(0,recoil-dt);
+ for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=220*dt;p.age+=dt}particles=particles.filter(p=>p.age<.6);for(const f of floats){f.y-=32*dt;f.age+=dt}floats=floats.filter(f=>f.age<.8);hud();if(time===0)end()}
+ if(toastRemaining>0){toastRemaining-=dt;if(toastRemaining<=0)$('toast').classList.remove('visible')}
+ ctx.drawImage(background,0,0,w,h);if(running){drawTargets(ctx);drawFloats(dt);if(!paused)drawLens()}
+ requestAnimationFrame(tick)}
+function setBreath(on){if(on){if(running&&!paused&&!breathLock&&breath>0)holdBreath=true}else holdBreath=false}
+function chooseLevel(lv){if(!RULES[lv])return;level=lv;updateHome()}
+load();window.addEventListener('resize',resize);resize();updateHome();updateSettings();show('home');requestAnimationFrame(t=>{last=t;tick(t)});
+document.querySelectorAll('[data-level]').forEach(el=>{el.addEventListener('click',()=>chooseLevel(el.dataset.level));el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseLevel(el.dataset.level)}})});
+$('start').addEventListener('click',begin);$('open-records').addEventListener('click',()=>{recordLevel=level;show('records')});$('open-settings').addEventListener('click',()=>show('settings'));
+document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',()=>show('home')));
+document.querySelectorAll('[data-record-level]').forEach(el=>el.addEventListener('click',()=>{recordLevel=el.dataset.recordLevel;updateRecords()}));
+for(const key of ['sound','vibration','distances','click'])$('setting-'+key).addEventListener('click',()=>{prefs[key]=!prefs[key];save(PREFS_STORE,prefs);updateSettings()});
+document.querySelectorAll('[data-reticle]').forEach(el=>el.addEventListener('click',()=>{prefs.reticle=el.dataset.reticle;save(PREFS_STORE,prefs);updateSettings()}));
+$('scope').addEventListener('click',()=>{magnify=magnify===2?4:2;$('scope').textContent='Прицел ×'+magnify});
+$('pause').addEventListener('click',pause);$('resume').addEventListener('click',resume);$('restart').addEventListener('click',begin);$('exit').addEventListener('click',exitRound);$('again').addEventListener('click',begin);$('end-records').addEventListener('click',()=>{recordLevel=level;show('records')});$('end-home').addEventListener('click',()=>show('home'));
+$('fullscreen').addEventListener('click',fullscreen);
+canvas.addEventListener('pointermove',e=>{if(running&&!paused)aimPosition(e.clientX,e.clientY)});
+canvas.addEventListener('pointerdown',e=>{if(!running||paused)return;aimPosition(e.clientX,e.clientY);if((e.pointerType==='mouse'||e.pointerType==='pen')&&prefs.click){e.preventDefault();fire()}});
+// pointerdown gives an immediate shot on touch; no ghost click from overlapping handlers.
+$('fire').addEventListener('pointerdown',e=>{e.preventDefault();fire()});
+$('breath').addEventListener('pointerdown',e=>{e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}setBreath(true)});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('breath').addEventListener(ev,()=>setBreath(false));
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&running&&!paused){e.preventDefault();if(!e.repeat)fire()}if((e.code==='ShiftLeft'||e.code==='ShiftRight')&&running&&!paused){e.preventDefault();setBreath(true)}if(e.code==='Escape'){if(screen==='none')pause();else if(screen==='pause')resume();else if(screen==='settings'||screen==='records')show('home')}});
+window.addEventListener('keyup',e=>{if(e.code==='ShiftLeft'||e.code==='ShiftRight')setBreath(false)});
+window.addEventListener('blur',()=>setBreath(false));document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!paused)pause()});
+})();
+</script>
+</body>
+</html>
