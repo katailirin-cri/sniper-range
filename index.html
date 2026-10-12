@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101d21">
 <meta name="description" content="Тихий рубеж — автономный снайперский тир. Мишени, прицел, рекорды, настройки.">
-<title>Тихий рубеж — v1.4</title>
+<title>Тихий рубеж — v1.5</title>
 <style>
 :root{color-scheme:dark;--ink:#0c171b;--surface:#1a2d2f;--line:#57716c;--cream:#f2e8d5;--muted:#b6c5b8;--amber:#d7a16f;--gold:#f2cb8e}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--cream);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;touch-action:none}
@@ -20,6 +20,13 @@ button.primary{background:linear-gradient(180deg,#bd8359,#965b3d);border-color:#
 #fire{background:linear-gradient(#bb7c4c,#945332);border-color:#f0c28c;box-shadow:0 2px 13px #0006;font-size:18px!important;min-width:128px!important;font-weight:900;min-height:55px}
 #breath{min-width:116px;touch-action:none;user-select:none;-webkit-user-select:none}
 #breath:active{background:#496860}
+/* On touch screens a tap on the field fires. Keep just the optional scope/breath/pause controls. */
+body.touch-auto-fire #fire{display:none!important}
+body.touch-auto-fire #game-controls{width:min(96%,590px)}
+body.touch-auto-fire #scope,body.touch-auto-fire #breath{flex:1.2}
+body.touch-auto-fire #pause,body.touch-auto-fire #fullscreen{flex:.8}
+body.touch-auto-fire #game{cursor:crosshair}
+.touch-switch{min-width:151px;font-size:12px;padding:8px 10px}
 #scope{min-width:95px}#pause{min-width:75px}
 #breath-info{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 81px);left:50%;transform:translateX(-50%);width:min(330px,70vw);pointer-events:none;z-index:2}
 #breath-meter{height:5px;background:#0b1b1e;border-radius:8px;border:1px solid #829b8e77;overflow:hidden}#breath-fill{height:100%;width:100%;background:#d9ba81;transition:width .13s}
@@ -55,7 +62,7 @@ button.primary{background:linear-gradient(180deg,#bd8359,#965b3d);border-color:#
 <div id="toast"></div>
 <div id="overlay">
   <section class="screen" id="home-screen">
-    <div class="eyebrow">ЛЕСНОЙ СТРЕЛКОВЫЙ ПОЛИГОН · V1.4</div>
+    <div class="eyebrow">ЛЕСНОЙ СТРЕЛКОВЫЙ ПОЛИГОН · V1.5</div>
     <h1>ТИХИЙ РУБЕЖ</h1>
     <p class="subtitle">Стальные мишени, дальние дистанции, непредсказуемые траектории. Одна минута — один результат.</p>
     <div class="rule"></div>
@@ -68,7 +75,7 @@ button.primary{background:linear-gradient(180deg,#bd8359,#965b3d);border-color:#
     <div class="menu-best">Лучший результат: <span id="home-best">—</span></div>
     <div class="rule"></div>
     <div class="menu-actions"><button id="start" type="button" class="primary wide">▶ Начать тренировку</button><button id="open-records" type="button">★ Рекорды</button><button id="open-settings" type="button">⚙ Настройки</button></div>
-    <div class="help-row">ПК: мышь — прицел, клик или пробел — огонь, Shift — задержка дыхания.<br>Android: веди пальцем по полю, стреляй кнопкой.</div>
+    <div class="help-row">ПК: мышь — прицел, клик или пробел — огонь, Shift — задержка дыхания.<br>Android: коснись мишени, чтобы сразу выстрелить. Без перетаскивания.</div>
   </section>
   <section class="screen hidden" id="records-screen">
     <div class="return-row"><button class="back-home" type="button">← Назад</button><span>АРХИВ ПОЛИГОНА</span></div>
@@ -84,6 +91,7 @@ button.primary{background:linear-gradient(180deg,#bd8359,#965b3d);border-color:#
     <div class="setting"><label for="setting-vibration">Вибрация<small>На поддерживаемых Android</small></label><button class="switch" id="setting-vibration" type="button">Выкл.</button></div>
     <div class="setting"><label for="setting-distances">Подписи дистанций<small>80, 160 и 280 метров (условно)</small></label><button class="switch" id="setting-distances" type="button">Вкл.</button></div>
     <div class="setting"><label for="setting-click">Выстрел по клику мыши<small>Или только кнопкой / пробелом</small></label><button class="switch" id="setting-click" type="button">Вкл.</button></div>
+    <div class="setting"><label for="setting-tapToFire">Управление на телефоне / планшете<small>Касание мишени сразу стреляет; при желании можно вернуть старую схему</small></label><button class="switch touch-switch" id="setting-tapToFire" type="button">Касание — огонь</button></div>
     <div class="setting"><label>Цвет сетки прицела<small>Выбери самый заметный</small></label><div class="option-colors"><button class="color-btn" data-reticle="sage" style="background:#cde9bb" aria-label="Зелёный"></button><button class="color-btn" data-reticle="amber" style="background:#ffcf85" aria-label="Янтарный"></button><button class="color-btn" data-reticle="white" style="background:#f7f7f0" aria-label="Белый"></button></div></div>
     <p class="tiny">Настройки и рекорды хранятся в браузере. Очистка данных сайта может их удалить.</p>
     <button class="back-home primary" type="button" style="width:100%">Сохранить и вернуться</button>
@@ -113,7 +121,7 @@ const RULES={
 };
 const DISTANCES=[{m:80,scale:1,mult:1},{m:160,scale:.82,mult:1.5},{m:280,scale:.66,mult:2}];
 const COLORS={sage:'#cde9bb',amber:'#ffcf85',white:'#f7f7f0'};
-const defaults={sound:true,vibration:false,distances:true,click:true,reticle:'sage'};
+const defaults={sound:true,vibration:false,distances:true,click:true,tapToFire:true,reticle:'sage'};
 let prefs={...defaults},boards={easy:[],normal:[],hard:[]},storageOK=true,level='normal',recordLevel='normal';
 let w=1,h=1,dpr=1,background=document.createElement('canvas'),bgctx=background.getContext('2d');
 let aim={x:0,y:0},targets=[],particles=[],floats=[],last=0,spawn=0,elapsed=0,score=0,shots=0,hits=0,misses=0,escapes=0,time=60;
@@ -126,7 +134,9 @@ function load(){try{let data=JSON.parse(localStorage.getItem(STORE)||'null');if(
  }catch(e){storageOK=false}}
 function best(lv=level){return boards[lv].length?boards[lv][0].score:null}
 function updateHome(){document.querySelectorAll('[data-level]').forEach(el=>{el.classList.toggle('selected',el.dataset.level===level);el.setAttribute('aria-pressed',String(el.dataset.level===level))});$('home-best').textContent=best()===null?'пока нет':best()+' очков'}
-function updateSettings(){for(const key of ['sound','vibration','distances','click']){const b=$('setting-'+key);b.textContent=prefs[key]?'Вкл.':'Выкл.';b.classList.toggle('on',prefs[key]);b.setAttribute('aria-pressed',String(prefs[key]))}document.querySelectorAll('[data-reticle]').forEach(el=>el.classList.toggle('selected',el.dataset.reticle===prefs.reticle))}
+function touchCapable(){return window.matchMedia?.('(pointer: coarse)').matches || (navigator.maxTouchPoints>0 && window.matchMedia?.('(hover: none)').matches)}
+function syncTouchUI(){document.body.classList.toggle('touch-auto-fire',prefs.tapToFire&&touchCapable());$('breath-caption').textContent=prefs.tapToFire&&touchCapable()?'Коснись мишени — выстрел сразу · «Дыхание» стабилизирует прицел':'Зажми «Дыхание» или SHIFT — меньше качает прицел'}
+function updateSettings(){for(const key of ['sound','vibration','distances','click']){const b=$('setting-'+key);b.textContent=prefs[key]?'Вкл.':'Выкл.';b.classList.toggle('on',prefs[key]);b.setAttribute('aria-pressed',String(prefs[key]))}const t=$('setting-tapToFire');t.textContent=prefs.tapToFire?'Касание — огонь':'Наведение + кнопка';t.classList.toggle('on',prefs.tapToFire);t.setAttribute('aria-pressed',String(prefs.tapToFire));syncTouchUI();document.querySelectorAll('[data-reticle]').forEach(el=>el.classList.toggle('selected',el.dataset.reticle===prefs.reticle))}
 function updateRecords(){document.querySelectorAll('[data-record-level]').forEach(el=>el.classList.toggle('active',el.dataset.recordLevel===recordLevel));const list=$('record-list');list.replaceChildren();if(!boards[recordLevel].length){let li=document.createElement('li');li.className='record-empty';li.textContent='Пока здесь никого. Первый рекорд ждёт!';list.append(li)}else boards[recordLevel].forEach((a,i)=>{let li=document.createElement('li'),rank=document.createElement('span'),points=document.createElement('span'),details=document.createElement('span');rank.className='record-rank';rank.textContent=String(i+1).padStart(2,'0');points.className='record-score';points.textContent=a.score+' очков';details.className='record-detail';details.textContent=a.hits+'/'+a.shots+' · '+a.when;li.append(rank,points,details);list.append(li)});$('save-status').textContent=storageOK?'Рекорды сохраняются в этом браузере и сохранятся при обновлении игры по той же ссылке.':'⚠ Не удалось получить доступ к памяти браузера. Сохранение может не работать.'}
 function show(name){screen=name;overlay.classList.toggle('hidden',name==='none');for(const el of document.querySelectorAll('.screen'))el.classList.toggle('hidden',el.id!==name+'-screen');const playing=name==='none'||name==='pause';$('hud').classList.toggle('hidden',!playing);$('game-controls').classList.toggle('hidden',name!=='none');$('breath-info').classList.toggle('hidden',name!=='none');if(name==='home')updateHome();if(name==='records')updateRecords();if(name==='settings')updateSettings();}
 function showToast(msg){$('toast').textContent=msg;$('toast').classList.add('visible');toastRemaining=1.2}
@@ -167,7 +177,7 @@ function drawLens(){const x=aim.x,y=aim.y,r=aimRadius();ctx.save();ctx.beginPath
  ctx.font='11px monospace';ctx.shadowBlur=0;ctx.fillText('×'+magnify,x-r+10,y-r+19);ctx.fillText(holdBreath&&!breathLock?'STEADY':'',x-r+10,y+r-10);ctx.restore()
 }
 function drawFloats(dt){for(const p of particles){ctx.globalAlpha=Math.max(0,1-p.age/.6);ctx.fillStyle='#efd49c';ctx.fillRect(p.x,p.y,3,3)}ctx.globalAlpha=1;for(const f of floats){ctx.globalAlpha=Math.max(0,1-f.age/.8);ctx.fillStyle=f.good?'#f8ddaa':'#f8b2a1';ctx.textAlign='center';ctx.font='bold 18px system-ui';ctx.fillText(f.msg,f.x,f.y)}ctx.globalAlpha=1}
-function hud(){ $('score').textContent='Очки: '+score;$('time').textContent='Время: '+Math.ceil(Math.max(0,time));$('accuracy').textContent='Точность: '+(shots?Math.round(hits/shots*100)+'%':'—');$('best').textContent='Рекорд: '+(best()??'—');$('breath-fill').style.width=Math.round(breath)+'%';$('breath-caption').textContent=breathLock?'Восстанови дыхание…':holdBreath?'Дыхание задержано — прицел стабилен':'Зажми «Дыхание» или SHIFT — меньше качает прицел'}
+function hud(){ $('score').textContent='Очки: '+score;$('time').textContent='Время: '+Math.ceil(Math.max(0,time));$('accuracy').textContent='Точность: '+(shots?Math.round(hits/shots*100)+'%':'—');$('best').textContent='Рекорд: '+(best()??'—');$('breath-fill').style.width=Math.round(breath)+'%';$('breath-caption').textContent=breathLock?'Восстанови дыхание…':holdBreath?'Дыхание задержано — прицел стабилен':(prefs.tapToFire&&touchCapable()?'Коснись мишени — выстрел сразу':'Зажми «Дыхание» или SHIFT — меньше качает прицел')}
 function tone(good){if(!prefs.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;soundContext=soundContext||new AC();if(soundContext.state==='suspended')soundContext.resume();const osc=soundContext.createOscillator(),gain=soundContext.createGain();osc.type=good?'triangle':'sawtooth';osc.frequency.setValueAtTime(good?660:142,soundContext.currentTime);osc.frequency.exponentialRampToValueAtTime(good?300:54,soundContext.currentTime+.17);gain.gain.setValueAtTime(.062,soundContext.currentTime);gain.gain.exponentialRampToValueAtTime(.001,soundContext.currentTime+.19);osc.connect(gain).connect(soundContext.destination);osc.start();osc.stop(soundContext.currentTime+.20)}catch(e){}}
 function vibrate(){if(prefs.vibration&&navigator.vibrate)try{navigator.vibrate(17)}catch(e){}}
 function addFloat(x,y,msg,good){floats.push({x,y,msg,good,age:0})}
@@ -189,19 +199,24 @@ function tick(now){let dt=Math.min(.05,Math.max(0,(now-last)/1000||0));last=now;
  requestAnimationFrame(tick)}
 function setBreath(on){if(on){if(running&&!paused&&!breathLock&&breath>0)holdBreath=true}else holdBreath=false}
 function chooseLevel(lv){if(!RULES[lv])return;level=lv;updateHome()}
-load();window.addEventListener('resize',resize);resize();updateHome();updateSettings();show('home');requestAnimationFrame(t=>{last=t;tick(t)});
+load();window.addEventListener('resize',()=>{resize();syncTouchUI()});resize();updateHome();updateSettings();show('home');requestAnimationFrame(t=>{last=t;tick(t)});
 document.querySelectorAll('[data-level]').forEach(el=>{el.addEventListener('click',()=>chooseLevel(el.dataset.level));el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();chooseLevel(el.dataset.level)}})});
 $('start').addEventListener('click',begin);$('open-records').addEventListener('click',()=>{recordLevel=level;show('records')});$('open-settings').addEventListener('click',()=>show('settings'));
 document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',()=>show('home')));
 document.querySelectorAll('[data-record-level]').forEach(el=>el.addEventListener('click',()=>{recordLevel=el.dataset.recordLevel;updateRecords()}));
-for(const key of ['sound','vibration','distances','click'])$('setting-'+key).addEventListener('click',()=>{prefs[key]=!prefs[key];save(PREFS_STORE,prefs);updateSettings()});
+for(const key of ['sound','vibration','distances','click','tapToFire'])$('setting-'+key).addEventListener('click',()=>{prefs[key]=!prefs[key];save(PREFS_STORE,prefs);updateSettings()});
 document.querySelectorAll('[data-reticle]').forEach(el=>el.addEventListener('click',()=>{prefs.reticle=el.dataset.reticle;save(PREFS_STORE,prefs);updateSettings()}));
 $('scope').addEventListener('click',()=>{magnify=magnify===2?4:2;$('scope').textContent='Прицел ×'+magnify});
 $('pause').addEventListener('click',pause);$('resume').addEventListener('click',resume);$('restart').addEventListener('click',begin);$('exit').addEventListener('click',exitRound);$('again').addEventListener('click',begin);$('end-records').addEventListener('click',()=>{recordLevel=level;show('records')});$('end-home').addEventListener('click',()=>show('home'));
 $('fullscreen').addEventListener('click',fullscreen);
-canvas.addEventListener('pointermove',e=>{if(running&&!paused)aimPosition(e.clientX,e.clientY)});
-canvas.addEventListener('pointerdown',e=>{if(!running||paused)return;aimPosition(e.clientX,e.clientY);if((e.pointerType==='mouse'||e.pointerType==='pen')&&prefs.click){e.preventDefault();fire()}});
-// pointerdown gives an immediate shot on touch; no ghost click from overlapping handlers.
+// Touch: one tap aims and fires instantly. Ignore touch movement in tap mode.
+// Mouse and stylus keep the existing point-to-aim / click-to-fire controls.
+canvas.addEventListener('pointermove',e=>{if(!running||paused)return;if(e.pointerType==='touch'&&prefs.tapToFire)return;aimPosition(e.clientX,e.clientY)});
+canvas.addEventListener('pointerdown',e=>{if(!running||paused||e.isPrimary===false)return;if(e.pointerType==='mouse'&&e.button!==0)return;
+ const touch=e.pointerType==='touch';if(touch)e.preventDefault();aimPosition(e.clientX,e.clientY);
+ if((touch&&prefs.tapToFire)||(!touch&&prefs.click)){e.preventDefault();fire()}
+});
+// A touch shot is handled only by the canvas; menu buttons still use normal clicks.
 $('fire').addEventListener('pointerdown',e=>{e.preventDefault();fire()});
 $('breath').addEventListener('pointerdown',e=>{e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}setBreath(true)});
 for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('breath').addEventListener(ev,()=>setBreath(false));
