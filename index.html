@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101d21">
 <meta name="description" content="Тихий рубеж — автономный снайперский тир. Мишени, прицел, рекорды, настройки.">
-<title>Тихий рубеж — v1.5</title>
+<title>Тихий рубеж — v1.6</title>
 <style>
 :root{color-scheme:dark;--ink:#0c171b;--surface:#1a2d2f;--line:#57716c;--cream:#f2e8d5;--muted:#b6c5b8;--amber:#d7a16f;--gold:#f2cb8e}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--cream);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;touch-action:none}
@@ -62,7 +62,7 @@ body.touch-auto-fire #game{cursor:crosshair}
 <div id="toast"></div>
 <div id="overlay">
   <section class="screen" id="home-screen">
-    <div class="eyebrow">ЛЕСНОЙ СТРЕЛКОВЫЙ ПОЛИГОН · V1.5</div>
+    <div class="eyebrow">ЛЕСНОЙ СТРЕЛКОВЫЙ ПОЛИГОН · V1.6</div>
     <h1>ТИХИЙ РУБЕЖ</h1>
     <p class="subtitle">Стальные мишени, дальние дистанции, непредсказуемые траектории. Одна минута — один результат.</p>
     <div class="rule"></div>
@@ -75,7 +75,7 @@ body.touch-auto-fire #game{cursor:crosshair}
     <div class="menu-best">Лучший результат: <span id="home-best">—</span></div>
     <div class="rule"></div>
     <div class="menu-actions"><button id="start" type="button" class="primary wide">▶ Начать тренировку</button><button id="open-records" type="button">★ Рекорды</button><button id="open-settings" type="button">⚙ Настройки</button></div>
-    <div class="help-row">ПК: мышь — прицел, клик или пробел — огонь, Shift — задержка дыхания.<br>Android: коснись мишени, чтобы сразу выстрелить. Без перетаскивания.</div>
+    <div class="help-row">ПК: мышь — прицел, клик или пробел — огонь, Shift — задержка дыхания.<br>Android: короткое касание — выстрел, движение пальцем — перемещение прицела. Кнопка не нужна.</div>
   </section>
   <section class="screen hidden" id="records-screen">
     <div class="return-row"><button class="back-home" type="button">← Назад</button><span>АРХИВ ПОЛИГОНА</span></div>
@@ -91,7 +91,7 @@ body.touch-auto-fire #game{cursor:crosshair}
     <div class="setting"><label for="setting-vibration">Вибрация<small>На поддерживаемых Android</small></label><button class="switch" id="setting-vibration" type="button">Выкл.</button></div>
     <div class="setting"><label for="setting-distances">Подписи дистанций<small>80, 160 и 280 метров (условно)</small></label><button class="switch" id="setting-distances" type="button">Вкл.</button></div>
     <div class="setting"><label for="setting-click">Выстрел по клику мыши<small>Или только кнопкой / пробелом</small></label><button class="switch" id="setting-click" type="button">Вкл.</button></div>
-    <div class="setting"><label for="setting-tapToFire">Управление на телефоне / планшете<small>Касание мишени сразу стреляет; при желании можно вернуть старую схему</small></label><button class="switch touch-switch" id="setting-tapToFire" type="button">Касание — огонь</button></div>
+    <div class="setting"><label for="setting-tapToFire">Управление на телефоне / планшете<small>Короткое касание — выстрел; проведи пальцем — переместишь прицел. Можно вернуть кнопку «ОГОНЬ».</small></label><button class="switch touch-switch" id="setting-tapToFire" type="button">Касание — огонь</button></div>
     <div class="setting"><label>Цвет сетки прицела<small>Выбери самый заметный</small></label><div class="option-colors"><button class="color-btn" data-reticle="sage" style="background:#cde9bb" aria-label="Зелёный"></button><button class="color-btn" data-reticle="amber" style="background:#ffcf85" aria-label="Янтарный"></button><button class="color-btn" data-reticle="white" style="background:#f7f7f0" aria-label="Белый"></button></div></div>
     <p class="tiny">Настройки и рекорды хранятся в браузере. Очистка данных сайта может их удалить.</p>
     <button class="back-home primary" type="button" style="width:100%">Сохранить и вернуться</button>
@@ -135,7 +135,7 @@ function load(){try{let data=JSON.parse(localStorage.getItem(STORE)||'null');if(
 function best(lv=level){return boards[lv].length?boards[lv][0].score:null}
 function updateHome(){document.querySelectorAll('[data-level]').forEach(el=>{el.classList.toggle('selected',el.dataset.level===level);el.setAttribute('aria-pressed',String(el.dataset.level===level))});$('home-best').textContent=best()===null?'пока нет':best()+' очков'}
 function touchCapable(){return window.matchMedia?.('(pointer: coarse)').matches || (navigator.maxTouchPoints>0 && window.matchMedia?.('(hover: none)').matches)}
-function syncTouchUI(){document.body.classList.toggle('touch-auto-fire',prefs.tapToFire&&touchCapable());$('breath-caption').textContent=prefs.tapToFire&&touchCapable()?'Коснись мишени — выстрел сразу · «Дыхание» стабилизирует прицел':'Зажми «Дыхание» или SHIFT — меньше качает прицел'}
+function syncTouchUI(){document.body.classList.toggle('touch-auto-fire',prefs.tapToFire&&touchCapable());$('breath-caption').textContent=prefs.tapToFire&&touchCapable()?'Короткое касание — выстрел · проведи пальцем — прицел':'Зажми «Дыхание» или SHIFT — меньше качает прицел'}
 function updateSettings(){for(const key of ['sound','vibration','distances','click']){const b=$('setting-'+key);b.textContent=prefs[key]?'Вкл.':'Выкл.';b.classList.toggle('on',prefs[key]);b.setAttribute('aria-pressed',String(prefs[key]))}const t=$('setting-tapToFire');t.textContent=prefs.tapToFire?'Касание — огонь':'Наведение + кнопка';t.classList.toggle('on',prefs.tapToFire);t.setAttribute('aria-pressed',String(prefs.tapToFire));syncTouchUI();document.querySelectorAll('[data-reticle]').forEach(el=>el.classList.toggle('selected',el.dataset.reticle===prefs.reticle))}
 function updateRecords(){document.querySelectorAll('[data-record-level]').forEach(el=>el.classList.toggle('active',el.dataset.recordLevel===recordLevel));const list=$('record-list');list.replaceChildren();if(!boards[recordLevel].length){let li=document.createElement('li');li.className='record-empty';li.textContent='Пока здесь никого. Первый рекорд ждёт!';list.append(li)}else boards[recordLevel].forEach((a,i)=>{let li=document.createElement('li'),rank=document.createElement('span'),points=document.createElement('span'),details=document.createElement('span');rank.className='record-rank';rank.textContent=String(i+1).padStart(2,'0');points.className='record-score';points.textContent=a.score+' очков';details.className='record-detail';details.textContent=a.hits+'/'+a.shots+' · '+a.when;li.append(rank,points,details);list.append(li)});$('save-status').textContent=storageOK?'Рекорды сохраняются в этом браузере и сохранятся при обновлении игры по той же ссылке.':'⚠ Не удалось получить доступ к памяти браузера. Сохранение может не работать.'}
 function show(name){screen=name;overlay.classList.toggle('hidden',name==='none');for(const el of document.querySelectorAll('.screen'))el.classList.toggle('hidden',el.id!==name+'-screen');const playing=name==='none'||name==='pause';$('hud').classList.toggle('hidden',!playing);$('game-controls').classList.toggle('hidden',name!=='none');$('breath-info').classList.toggle('hidden',name!=='none');if(name==='home')updateHome();if(name==='records')updateRecords();if(name==='settings')updateSettings();}
@@ -177,17 +177,17 @@ function drawLens(){const x=aim.x,y=aim.y,r=aimRadius();ctx.save();ctx.beginPath
  ctx.font='11px monospace';ctx.shadowBlur=0;ctx.fillText('×'+magnify,x-r+10,y-r+19);ctx.fillText(holdBreath&&!breathLock?'STEADY':'',x-r+10,y+r-10);ctx.restore()
 }
 function drawFloats(dt){for(const p of particles){ctx.globalAlpha=Math.max(0,1-p.age/.6);ctx.fillStyle='#efd49c';ctx.fillRect(p.x,p.y,3,3)}ctx.globalAlpha=1;for(const f of floats){ctx.globalAlpha=Math.max(0,1-f.age/.8);ctx.fillStyle=f.good?'#f8ddaa':'#f8b2a1';ctx.textAlign='center';ctx.font='bold 18px system-ui';ctx.fillText(f.msg,f.x,f.y)}ctx.globalAlpha=1}
-function hud(){ $('score').textContent='Очки: '+score;$('time').textContent='Время: '+Math.ceil(Math.max(0,time));$('accuracy').textContent='Точность: '+(shots?Math.round(hits/shots*100)+'%':'—');$('best').textContent='Рекорд: '+(best()??'—');$('breath-fill').style.width=Math.round(breath)+'%';$('breath-caption').textContent=breathLock?'Восстанови дыхание…':holdBreath?'Дыхание задержано — прицел стабилен':(prefs.tapToFire&&touchCapable()?'Коснись мишени — выстрел сразу':'Зажми «Дыхание» или SHIFT — меньше качает прицел')}
+function hud(){ $('score').textContent='Очки: '+score;$('time').textContent='Время: '+Math.ceil(Math.max(0,time));$('accuracy').textContent='Точность: '+(shots?Math.round(hits/shots*100)+'%':'—');$('best').textContent='Рекорд: '+(best()??'—');$('breath-fill').style.width=Math.round(breath)+'%';$('breath-caption').textContent=breathLock?'Восстанови дыхание…':holdBreath?'Дыхание задержано — прицел стабилен':(prefs.tapToFire&&touchCapable()?'Касание — выстрел, движение пальцем — прицел':'Зажми «Дыхание» или SHIFT — меньше качает прицел')}
 function tone(good){if(!prefs.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;soundContext=soundContext||new AC();if(soundContext.state==='suspended')soundContext.resume();const osc=soundContext.createOscillator(),gain=soundContext.createGain();osc.type=good?'triangle':'sawtooth';osc.frequency.setValueAtTime(good?660:142,soundContext.currentTime);osc.frequency.exponentialRampToValueAtTime(good?300:54,soundContext.currentTime+.17);gain.gain.setValueAtTime(.062,soundContext.currentTime);gain.gain.exponentialRampToValueAtTime(.001,soundContext.currentTime+.19);osc.connect(gain).connect(soundContext.destination);osc.start();osc.stop(soundContext.currentTime+.20)}catch(e){}}
 function vibrate(){if(prefs.vibration&&navigator.vibrate)try{navigator.vibrate(17)}catch(e){}}
 function addFloat(x,y,msg,good){floats.push({x,y,msg,good,age:0})}
-function fire(){if(!running||paused)return;shots++;const px=aim.x+swayX/magnify,py=aim.y+swayY/magnify;let found=null,nearest=Infinity;for(const t of targets){const d=Math.hypot(px-t.x,py-t.y);if(d<t.r&&d<nearest){nearest=d;found=t}}
+function fire(touchPoint=null){if(!running||paused)return;shots++;const px=touchPoint?touchPoint.x:aim.x+swayX/magnify,py=touchPoint?touchPoint.y:aim.y+swayY/magnify;let found=null,nearest=Infinity;for(const t of targets){const d=Math.hypot(px-t.x,py-t.y);if(d<t.r+(touchPoint?.assist||0)&&d<nearest){nearest=d;found=t}}
  if(found){hits++;let base=nearest<found.r*.32?100:nearest<found.r*.66?70:40,value=Math.round(base*found.mult/5)*5;score+=value;targets.splice(targets.indexOf(found),1);addFloat(found.x,found.y,'+'+value,true);for(let i=0;i<12;i++)particles.push({x:found.x,y:found.y,vx:rand(-115,115),vy:rand(-150,45),age:0});tone(true)}else{misses++;score-=25;addFloat(px,py,'−25',false);tone(false)}recoil=.18;vibrate();hud()}
 function begin(){level=level in RULES?level:'normal';targets=[];particles=[];floats=[];time=60;elapsed=0;spawn=1.25;score=shots=hits=misses=escapes=0;running=true;paused=false;breath=100;breathLock=false;holdBreath=false;recoil=0;magnify=2;aimPosition(w/2,h*.46);for(let i=0;i<3;i++)makeTarget();last=performance.now();$('scope').textContent='Прицел ×2';show('none');hud()}
 function end(){running=false;paused=false;holdBreath=false;const prior=best(level);boards[level].push({score,hits,shots,when:new Date().toLocaleDateString('ru-RU')});boards[level].sort((a,b)=>b.score-a.score);boards[level].length=Math.min(5,boards[level].length);save(STORE,boards);$('end-score').textContent=String(score);$('end-accuracy').textContent=shots?Math.round(hits/shots*100)+'%':'0%';$('end-hits').textContent=hits+' / '+shots;$('end-penalties').textContent='−'+(misses*25+escapes*10);$('end-message').textContent=prior===null||score>prior?'★ Новый рекорд!':'Результат записан · '+NAMES[level]+' уровень';show('end')}
 function pause(){if(!running)return;paused=true;holdBreath=false;$('pause-summary').textContent='Очки: '+score+' · осталось '+Math.ceil(time)+' сек.';show('pause')}
 function resume(){if(!running)return;paused=false;last=performance.now();show('none')}
-function exitRound(){running=false;paused=false;holdBreath=false;targets=[];show('home')}
+function exitRound(){running=false;paused=false;holdBreath=false;finger=null;targets=[];show('home')}
 function tick(now){let dt=Math.min(.05,Math.max(0,(now-last)/1000||0));last=now;if(running&&!paused){time=Math.max(0,time-dt);elapsed+=dt;spawn-=dt;
  if(spawn<=0){if(targets.length<cfg().max)makeTarget();spawn=cfg().interval*rand(.7,1.16)/difficultyRamp()}
  for(const t of targets)moveTarget(t,dt);let kept=[];for(const t of targets)if(t.life>0)kept.push(t);else{escapes++;score-=10;addFloat(t.x,t.y,'−10',false)}targets=kept;
@@ -209,14 +209,66 @@ document.querySelectorAll('[data-reticle]').forEach(el=>el.addEventListener('cli
 $('scope').addEventListener('click',()=>{magnify=magnify===2?4:2;$('scope').textContent='Прицел ×'+magnify});
 $('pause').addEventListener('click',pause);$('resume').addEventListener('click',resume);$('restart').addEventListener('click',begin);$('exit').addEventListener('click',exitRound);$('again').addEventListener('click',begin);$('end-records').addEventListener('click',()=>{recordLevel=level;show('records')});$('end-home').addEventListener('click',()=>show('home'));
 $('fullscreen').addEventListener('click',fullscreen);
-// Touch: one tap aims and fires instantly. Ignore touch movement in tap mode.
-// Mouse and stylus keep the existing point-to-aim / click-to-fire controls.
-canvas.addEventListener('pointermove',e=>{if(!running||paused)return;if(e.pointerType==='touch'&&prefs.tapToFire)return;aimPosition(e.clientX,e.clientY)});
-canvas.addEventListener('pointerdown',e=>{if(!running||paused||e.isPrimary===false)return;if(e.pointerType==='mouse'&&e.button!==0)return;
- const touch=e.pointerType==='touch';if(touch)e.preventDefault();aimPosition(e.clientX,e.clientY);
- if((touch&&prefs.tapToFire)||(!touch&&prefs.click)){e.preventDefault();fire()}
+// Touch gestures: a short tap fires exactly where the finger touched, a drag
+// moves the sight without firing. This works in both touch control modes.
+// Use canvas coordinates so browser bars/viewport resizing cannot offset a shot.
+let finger=null;
+function pointerPoint(e){const rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)*w/rect.width,y:(e.clientY-rect.top)*h/rect.height}}
+function tapShot(x,y,originalAim){
+ // In the magnifying lens the target is drawn enlarged relative to the OLD
+ // sight center. Convert the touched pixel back into world coordinates.
+ const zoomed=Math.hypot(x-originalAim.x,y-originalAim.y)<=aimRadius();
+ const px=zoomed?originalAim.x+(x-originalAim.x)/magnify:x;
+ const py=zoomed?originalAim.y+(y-originalAim.y)/magnify:y;
+ aimPosition(x,y);
+ fire({x:px,y:py,assist:zoomed?5:9});
+}
+canvas.addEventListener('pointerdown',e=>{
+ if(!running||paused||e.isPrimary===false)return;
+ if(e.pointerType==='touch'){
+   e.preventDefault();
+   if(finger)return;
+   const p=pointerPoint(e);
+   finger={id:e.pointerId,x:p.x,y:p.y,oldAim:{...aim},dragged:false};
+   try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+   return;
+ }
+ if(e.button!==0)return;
+ const p=pointerPoint(e);aimPosition(p.x,p.y);
+ if(prefs.click){e.preventDefault();fire()}
 });
-// A touch shot is handled only by the canvas; menu buttons still use normal clicks.
+canvas.addEventListener('pointermove',e=>{
+ if(!running||paused)return;
+ if(e.pointerType==='touch'){
+   if(!finger||e.pointerId!==finger.id)return;
+   e.preventDefault();
+   const p=pointerPoint(e);
+   if(Math.hypot(p.x-finger.x,p.y-finger.y)>13)finger.dragged=true;
+   if(finger.dragged)aimPosition(p.x,p.y);
+   return;
+ }
+ const p=pointerPoint(e);aimPosition(p.x,p.y);
+});
+canvas.addEventListener('pointerup',e=>{
+ if(e.pointerType!=='touch'||!finger||e.pointerId!==finger.id)return;
+ e.preventDefault();
+ const gesture=finger;finger=null;
+ if(!running||paused)return;
+ const p=pointerPoint(e);
+ if(gesture.dragged||Math.hypot(p.x-gesture.x,p.y-gesture.y)>13){aimPosition(p.x,p.y);return}
+ if(prefs.tapToFire)tapShot(p.x,p.y,gesture.oldAim);
+ else aimPosition(p.x,p.y);
+});
+canvas.addEventListener('pointercancel',e=>{if(finger&&finger.id===e.pointerId)finger=null});
+// Fallback for old browsers without PointerEvent (Android Chrome uses PointerEvent).
+if(!window.PointerEvent){
+ let legacy=null;
+ canvas.addEventListener('touchstart',e=>{if(!running||paused||e.touches.length!==1)return;e.preventDefault();const t=e.touches[0],p=pointerPoint(t);legacy={x:p.x,y:p.y,oldAim:{...aim},dragged:false}},{passive:false});
+ canvas.addEventListener('touchmove',e=>{if(!legacy||!running||paused)return;e.preventDefault();const p=pointerPoint(e.touches[0]);if(Math.hypot(p.x-legacy.x,p.y-legacy.y)>13)legacy.dragged=true;if(legacy.dragged)aimPosition(p.x,p.y)},{passive:false});
+ canvas.addEventListener('touchend',e=>{if(!legacy)return;e.preventDefault();const g=legacy;legacy=null;if(!running||paused)return;const p=e.changedTouches.length?pointerPoint(e.changedTouches[0]):{x:g.x,y:g.y};if(g.dragged)return;if(prefs.tapToFire)tapShot(p.x,p.y,g.oldAim);else aimPosition(p.x,p.y)},{passive:false});
+ canvas.addEventListener('touchcancel',()=>legacy=null);
+}
+// The fire button remains available in classic mode.
 $('fire').addEventListener('pointerdown',e=>{e.preventDefault();fire()});
 $('breath').addEventListener('pointerdown',e=>{e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId)}catch(_){}setBreath(true)});
 for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('breath').addEventListener(ev,()=>setBreath(false));
